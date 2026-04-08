@@ -1,127 +1,205 @@
-import java.util.*;
-
-class BankAccount {
-    int accountNumber;
-    String username;
-    int balance;
-
-    BankAccount(int accountNumber, String username, int balance) {
-        this.accountNumber = accountNumber;
-        this.username = username;
-        this.balance = balance;
-    }
-}
+import java.util.Scanner;
 
 public class Main {
+
+    static Scanner scanner = new Scanner(System.in);
+    static AccountService service = new AccountService();
+
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
 
-        LinkedList<BankAccount> accounts = new LinkedList<>();
-        Stack<String> history = new Stack<>();
-        Queue<String> bills = new LinkedList<>();
-        Queue<BankAccount> requests = new LinkedList<>();
+        PhysicalStorage.demonstrateArray();
 
+        System.out.println("\n=============================");
+        System.out.println("  Welcome to Simple Bank App");
+        System.out.println("=============================");
+
+        boolean running = true;
+        while (running) {
+            System.out.println("\n--- Main Menu ---");
+            System.out.println("1 - Enter Bank");
+            System.out.println("2 - Enter ATM");
+            System.out.println("3 - Admin Area");
+            System.out.println("4 - Exit");
+            System.out.print("Choose: ");
+
+            String choice = scanner.nextLine().trim();
+
+            switch (choice) {
+                case "1":
+                    bankMenu();
+                    break;
+                case "2":
+                    atmMenu();
+                    break;
+                case "3":
+                    adminMenu();
+                    break;
+                case "4":
+                    System.out.println("Goodbye!");
+                    running = false;
+                    break;
+                default:
+                    System.out.println("Invalid option. Please try again.");
+            }
+        }
+    }
+
+    static void bankMenu() {
+        boolean inBank = true;
+        while (inBank) {
+            System.out.println("\n--- Bank Menu ---");
+            System.out.println("1 - Open new account (submit request)");
+            System.out.println("2 - Deposit money");
+            System.out.println("3 - Withdraw money");
+            System.out.println("4 - View all accounts");
+            System.out.println("5 - Search account by username");
+            System.out.println("6 - Add bill payment");
+            System.out.println("7 - View transaction history");
+            System.out.println("8 - Undo last transaction");
+            System.out.println("9 - Back to main menu");
+            System.out.print("Choose: ");
+
+            String choice = scanner.nextLine().trim();
+
+            switch (choice) {
+                case "1":
+                    System.out.print("Enter account number: ");
+                    String accNum = scanner.nextLine().trim();
+                    System.out.print("Enter username: ");
+                    String username = scanner.nextLine().trim();
+                    System.out.print("Enter initial balance: ");
+                    double balance = readDouble();
+                    BankAccount newAcc = new BankAccount(accNum, username, balance);
+                    service.submitAccountRequest(newAcc);
+                    break;
+                case "2":
+                    System.out.print("Enter username: ");
+                    String depUser = scanner.nextLine().trim();
+                    System.out.print("Enter deposit amount: ");
+                    double depAmount = readDouble();
+                    service.deposit(depUser, depAmount);
+                    break;
+                case "3":
+                    System.out.print("Enter username: ");
+                    String witUser = scanner.nextLine().trim();
+                    System.out.print("Enter withdraw amount: ");
+                    double witAmount = readDouble();
+                    service.withdraw(witUser, witAmount);
+                    break;
+                case "4":
+                    service.displayAllAccounts();
+                    break;
+                case "5":
+                    System.out.print("Enter username to search: ");
+                    String searchName = scanner.nextLine().trim();
+                    BankAccount found = service.searchByUsername(searchName);
+                    if (found != null) {
+                        System.out.println("Found: ");
+                        found.display();
+                    } else {
+                        System.out.println("Account not found.");
+                    }
+                    break;
+                case "6":
+                    System.out.print("Enter bill name (e.g. Electricity Bill): ");
+                    String bill = scanner.nextLine().trim();
+                    service.addBillPayment(bill);
+                    break;
+                case "7":
+                    service.peekLastTransaction();
+                    break;
+                case "8":
+                    service.undoLastTransaction();
+                    break;
+                case "9":
+                    inBank = false;
+                    break;
+                default:
+                    System.out.println("Invalid option.");
+            }
+        }
+    }
+
+    static void atmMenu() {
+        boolean inATM = true;
+        while (inATM) {
+            System.out.println("\n--- ATM Menu ---");
+            System.out.println("1 - Balance enquiry");
+            System.out.println("2 - Withdraw");
+            System.out.println("3 - Back to main menu");
+            System.out.print("Choose: ");
+
+            String choice = scanner.nextLine().trim();
+
+            switch (choice) {
+                case "1":
+                    System.out.print("Enter username: ");
+                    String name = scanner.nextLine().trim();
+                    BankAccount acc = service.searchByUsername(name);
+                    if (acc != null) {
+                        System.out.println("Balance for " + acc.username + ": " + acc.balance);
+                    } else {
+                        System.out.println("Account not found.");
+                    }
+                    break;
+                case "2":
+                    System.out.print("Enter username: ");
+                    String witUser = scanner.nextLine().trim();
+                    System.out.print("Enter amount to withdraw: ");
+                    double amount = readDouble();
+                    service.withdraw(witUser, amount);
+                    break;
+                case "3":
+                    inATM = false;
+                    break;
+                default:
+                    System.out.println("Invalid option.");
+            }
+        }
+    }
+
+    static void adminMenu() {
+        boolean inAdmin = true;
+        while (inAdmin) {
+            System.out.println("\n--- Admin Menu ---");
+            System.out.println("1 - View pending account requests");
+            System.out.println("2 - Process next account request");
+            System.out.println("3 - View bill payment queue");
+            System.out.println("4 - Process next bill payment");
+            System.out.println("5 - Back to main menu");
+            System.out.print("Choose: ");
+
+            String choice = scanner.nextLine().trim();
+
+            switch (choice) {
+                case "1":
+                    service.displayPendingRequests();
+                    break;
+                case "2":
+                    service.processNextAccountRequest();
+                    break;
+                case "3":
+                    service.displayBillQueue();
+                    break;
+                case "4":
+                    service.processNextBill();
+                    break;
+                case "5":
+                    inAdmin = false;
+                    break;
+                default:
+                    System.out.println("Invalid option.");
+            }
+        }
+    }
+
+    static double readDouble() {
         while (true) {
-            System.out.println("1 Add account");
-            System.out.println("2 Show accounts");
-            System.out.println("3 Search");
-            System.out.println("4 Deposit");
-            System.out.println("5 Withdraw");
-            System.out.println("6 Add bill");
-            System.out.println("7 Process bill");
-            System.out.println("8 Add request");
-            System.out.println("9 Process request");
-            System.out.println("10 Exit");
-
-            int choice = sc.nextInt();
-
-            if (choice == 1) {
-                System.out.print("Number: ");
-                int num = sc.nextInt();
-                System.out.print("Name: ");
-                String name = sc.next();
-                System.out.print("Balance: ");
-                int bal = sc.nextInt();
-
-                accounts.add(new BankAccount(num, name, bal));
-                System.out.println("Added");
-            }
-
-            else if (choice == 2) {
-                for (BankAccount a : accounts) {
-                    System.out.println(a.username + " " + a.balance);
-                }
-            }
-
-            else if (choice == 3) {
-                System.out.print("Name: ");
-                String name = sc.next();
-
-                for (BankAccount a : accounts) {
-                    if (a.username.equals(name)) {
-                        System.out.println("Found " + a.balance);
-                    }
-                }
-            }
-
-            else if (choice == 4) {
-                System.out.print("Name: ");
-                String name = sc.next();
-                System.out.print("Money: ");
-                int m = sc.nextInt();
-
-                for (BankAccount a : accounts) {
-                    if (a.username.equals(name)) {
-                        a.balance += m;
-                        history.push("Deposit " + m + " to " + name);
-                        System.out.println("New balance " + a.balance);
-                    }
-                }
-            }
-
-            else if (choice == 5) {
-                System.out.print("Name: ");
-                String name = sc.next();
-                System.out.print("Money: ");
-                int m = sc.nextInt();
-
-                for (BankAccount a : accounts) {
-                    if (a.username.equals(name)) {
-                        a.balance -= m;
-                        history.push("Withdraw " + m + " from " + name);
-                        System.out.println("New balance " + a.balance);
-                    }
-                }
-            }
-
-            else if (choice == 6) {
-                System.out.print("Bill: ");
-                String b = sc.next();
-                bills.add(b);
-            }
-
-            else if (choice == 7) {
-                if (!bills.isEmpty()) {
-                    System.out.println("Processing " + bills.poll());
-                }
-            }
-
-            else if (choice == 8) {
-                System.out.print("Name: ");
-                String name = sc.next();
-                requests.add(new BankAccount(0, name, 0));
-            }
-
-            else if (choice == 9) {
-                if (!requests.isEmpty()) {
-                    BankAccount a = requests.poll();
-                    accounts.add(a);
-                    System.out.println("Account created for " + a.username);
-                }
-            }
-
-            else if (choice == 10) {
-                break;
+            try {
+                String input = scanner.nextLine().trim();
+                return Double.parseDouble(input);
+            } catch (NumberFormatException e) {
+                System.out.print("Invalid number. Try again: ");
             }
         }
     }
