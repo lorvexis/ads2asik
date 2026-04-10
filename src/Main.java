@@ -53,10 +53,7 @@ public class Main {
             System.out.println("3 - Withdraw money");
             System.out.println("4 - View all accounts");
             System.out.println("5 - Search account by username");
-            System.out.println("6 - Add bill payment");
-            System.out.println("7 - View transaction history");
-            System.out.println("8 - Undo last transaction");
-            System.out.println("9 - Back to main menu");
+            System.out.println("6 - Back to main menu");
             System.out.print("Choose: ");
 
             String choice = scanner.nextLine().trim();
@@ -101,17 +98,6 @@ public class Main {
                     }
                     break;
                 case "6":
-                    System.out.print("Enter bill name (e.g. Electricity Bill): ");
-                    String bill = scanner.nextLine().trim();
-                    service.addBillPayment(bill);
-                    break;
-                case "7":
-                    service.peekLastTransaction();
-                    break;
-                case "8":
-                    service.undoLastTransaction();
-                    break;
-                case "9":
                     inBank = false;
                     break;
                 default:
