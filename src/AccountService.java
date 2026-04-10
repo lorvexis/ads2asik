@@ -1,17 +1,10 @@
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Stack;
 
 public class AccountService {
 
-    LinkedList<BankAccount> accounts = new LinkedList<>();
-
-    Stack<String> transactionHistory = new Stack<>();
-
-    Queue<String> billQueue = new LinkedList<>();
-
-    Queue<BankAccount> accountRequests = new LinkedList<>();
-
+    MyLinkedList<BankAccount> accounts = new MyLinkedList<>();
+    MyStack<String> transactionHistory = new MyStack<>();
+    MyQueue<String> billQueue = new MyQueue<>();
+    MyQueue<BankAccount> accountRequests = new MyQueue<>();
 
     public void addAccount(BankAccount account) {
         accounts.add(account);
@@ -24,22 +17,25 @@ public class AccountService {
             return;
         }
         System.out.println("\nAccounts List:");
+        MyNode<BankAccount> current = accounts.getHead();
         int i = 1;
-        for (BankAccount acc : accounts) {
-            System.out.println(i + ". " + acc.username + " -- Balance: " + acc.balance);
+        while (current != null) {
+            System.out.println(i + ". " + current.data.username + " -- Balance: " + current.data.balance);
+            current = current.next;
             i++;
         }
     }
 
     public BankAccount searchByUsername(String username) {
-        for (BankAccount acc : accounts) {
-            if (acc.username.equalsIgnoreCase(username)) {
-                return acc;
+        MyNode<BankAccount> current = accounts.getHead();
+        while (current != null) {
+            if (current.data.username.equalsIgnoreCase(username)) {
+                return current.data;
             }
+            current = current.next;
         }
         return null;
     }
-
 
     public void deposit(String username, double amount) {
         BankAccount acc = searchByUsername(username);
@@ -59,55 +55,38 @@ public class AccountService {
             return;
         }
         if (acc.balance < amount) {
-            System.out.println("Insufficient balance.");
+            System.out.println("Insufficient funds!");
             return;
         }
         acc.balance -= amount;
-        System.out.println("Withdrawn " + amount + " from " + username + ". New balance: " + acc.balance);
+        System.out.println("Withdrew " + amount + " from " + username + ". New balance: " + acc.balance);
         transactionHistory.push("Withdraw " + amount + " from " + username);
     }
 
-
-    public void addTransaction(String transaction) {
-        transactionHistory.push(transaction);
-        System.out.println("Transaction added: " + transaction);
-    }
-
-    public void undoLastTransaction() {
+    public void showTransactionHistory() {
         if (transactionHistory.isEmpty()) {
-            System.out.println("No transactions to undo.");
+            System.out.println("No transactions yet.");
             return;
         }
-        String removed = transactionHistory.pop();
-        System.out.println("Undo → " + removed + " removed.");
-    }
-
-    public void peekLastTransaction() {
-        if (transactionHistory.isEmpty()) {
-            System.out.println("No transactions.");
-            return;
+        System.out.println("\nTransaction History (Last first):");
+        MyNode<String> current = transactionHistory.getTop();
+        while (current != null) {
+            System.out.println(" - " + current.data);
+            current = current.next;
         }
-        System.out.println("Last transaction: " + transactionHistory.peek());
     }
 
-    public void addBillPayment(String bill) {
-        billQueue.add(bill);
-        System.out.println("Added: " + bill);
+    public void addBillToQueue(String billName) {
+        billQueue.enqueue(billName);
+        System.out.println("Bill added: " + billName);
     }
 
     public void processNextBill() {
-        if (billQueue.isEmpty()) {
-            System.out.println("No bills in queue.");
-            return;
-        }
-        System.out.println("Processing: " + billQueue.poll());
-        if (!billQueue.isEmpty()) {
-            System.out.println("Remaining bills:");
-            for (String bill : billQueue) {
-                System.out.println("  - " + bill);
-            }
+        String bill = billQueue.dequeue();
+        if (bill == null) {
+            System.out.println("No bills to process.");
         } else {
-            System.out.println("No remaining bills.");
+            System.out.println("Processed bill: " + bill);
         }
     }
 
@@ -117,23 +96,24 @@ public class AccountService {
             return;
         }
         System.out.println("Bills in queue:");
-        for (String bill : billQueue) {
-            System.out.println("  - " + bill);
+        MyNode<String> current = billQueue.getFront();
+        while (current != null) {
+            System.out.println("  - " + current.data);
+            current = current.next;
         }
     }
 
-
     public void submitAccountRequest(BankAccount account) {
-        accountRequests.add(account);
+        accountRequests.enqueue(account);
         System.out.println("Request submitted for: " + account.username);
     }
 
     public void processNextAccountRequest() {
-        if (accountRequests.isEmpty()) {
+        BankAccount acc = accountRequests.dequeue();
+        if (acc == null) {
             System.out.println("No pending requests.");
             return;
         }
-        BankAccount acc = accountRequests.poll();
         accounts.add(acc);
         System.out.println("Account approved and created for: " + acc.username);
     }
@@ -144,8 +124,10 @@ public class AccountService {
             return;
         }
         System.out.println("Pending account requests:");
-        for (BankAccount acc : accountRequests) {
-            System.out.println("  - " + acc.username + " (Account#: " + acc.accountNumber + ")");
+        MyNode<BankAccount> current = accountRequests.getFront();
+        while (current != null) {
+            System.out.println("  - " + current.data.username + " (Account#: " + current.data.accountNumber + ")");
+            current = current.next;
         }
     }
 }
